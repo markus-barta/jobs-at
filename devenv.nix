@@ -4,9 +4,10 @@
   # Load .env automatically (OPENROUTER_API_KEY etc.)
   dotenv.enable = true;
 
+  # uv manages Python itself — no need for devenv's python version pin
+  # (which would require the external nixpkgs-python input)
   languages.python = {
     enable = true;
-    version = "3.13";
     uv = {
       enable = true;
       sync.enable = true;   # runs `uv sync` on devenv activation
@@ -14,8 +15,6 @@
   };
 
   packages = with pkgs; [
-    uv
-    httpie   # handy for quick API testing
     jq
   ];
 
