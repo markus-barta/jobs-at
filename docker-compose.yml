@@ -1,5 +1,5 @@
-# Standalone compose — for LOCAL TESTING ONLY (e.g. on hsb1 or your Mac).
-# On csb1, this service is added to ~/docker/docker-compose.yml instead.
+# Standalone compose — for LOCAL TESTING ONLY.
+# On the production server, add the jobs-at service to your central docker-compose.yml.
 # See deployment instructions in README.md.
 name: jobs-at-local
 

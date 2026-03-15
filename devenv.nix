@@ -46,7 +46,9 @@
     normalize.exec      = "uv run python score_headcount.py --normalize";
     build.exec          = "uv run python build_site_data.py";
 
-    # Deploy: commit data.json + push + pull on csb1
+    # Deploy: commit data files, push, wait for GHA image build, pull on server
+    # Reads DEPLOY_SSH target from .env (e.g. DEPLOY_SSH="user@host -p 2222")
+    # and DEPLOY_COMPOSE_DIR (e.g. ~/docker)
     deploy.exec = ''
       set -e
       git add site/data.json occupations.csv scores.json headcounts.json occupations.json
@@ -54,9 +56,15 @@
       git push
       echo "Waiting for GitHub Actions to build image..."
       gh run watch --exit-status
-      echo "Deploying to csb1..."
-      ssh mba@cs1.barta.cm -p 2222 "cd ~/docker && docker compose pull jobs-at && docker compose up -d jobs-at"
-      echo "Live at https://zukunftschance.ai.barta.cm"
+      if [ -n "$DEPLOY_SSH" ]; then
+        echo "Deploying to server..."
+        ssh $DEPLOY_SSH "cd ''${DEPLOY_COMPOSE_DIR:-~/docker} && docker compose pull jobs-at && docker compose up -d jobs-at"
+        echo "Done."
+      else
+        echo "DEPLOY_SSH not set in .env — skipping remote deploy."
+        echo "Pull the image manually on your server:"
+        echo "  docker compose pull jobs-at && docker compose up -d jobs-at"
+      fi
     '';
 
     # Serve site locally
@@ -74,7 +82,7 @@
     echo "  score-headcount  — ISCO code + headcount estimation via LLM"
     echo "  normalize        — re-run STATcube normalization on headcounts.json"
     echo "  build            — build site/data.json"
-    echo "  deploy     — commit + push + deploy to csb1"
+    echo "  deploy           — commit + push + deploy to server"
     echo "  serve      — serve site locally at :8000"
     echo ""
     if [ -z "$OPENROUTER_API_KEY" ]; then
