@@ -16,9 +16,11 @@
       :root {
         --bg: #0a0a0f;
         --bg2: #12121a;
+        --bg3: #1a1a26;
         --fg: #e0e0e8;
         --fg2: #888894;
-        --sidebar-w: 230px;
+        --accent: #5b8af0;
+        --sidebar-w: 240px;
       }
 
       body {
@@ -30,6 +32,7 @@
         height: 100vh;
       }
 
+      /* ── Sidebar ─────────────────────────────────────────────── */
       #sidebar {
         position: fixed;
         top: 0;
@@ -38,38 +41,37 @@
         width: var(--sidebar-w);
         background: var(--bg2);
         border-right: 1px solid rgba(255, 255, 255, 0.06);
-        padding: 20px 18px;
+        padding: 16px 14px;
         z-index: 10;
         overflow-y: auto;
         display: flex;
         flex-direction: column;
-        gap: 18px;
+        gap: 14px;
       }
 
       #sidebar h1 {
-        font-size: 15px;
+        font-size: 14px;
         font-weight: 600;
         letter-spacing: -0.02em;
         line-height: 1.3;
       }
-      #sidebar .subtitle {
-        font-size: 11px;
+      .subtitle {
+        font-size: 10px;
         color: var(--fg2);
-        margin-top: 4px;
+        margin-top: 3px;
         line-height: 1.4;
       }
-      #sidebar .subtitle a {
+      .subtitle a {
         color: var(--fg2);
       }
 
-      /* Language toggle */
       .lang-toggle {
         display: flex;
         gap: 4px;
       }
       .lang-btn {
         flex: 1;
-        padding: 4px 0;
+        padding: 3px 0;
         font-size: 11px;
         font-weight: 600;
         background: rgba(255, 255, 255, 0.06);
@@ -85,10 +87,41 @@
         border-color: rgba(255, 255, 255, 0.2);
       }
 
+      .filter-section {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .filter-label {
+        font-size: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--fg2);
+      }
+      select {
+        background: var(--bg3);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: var(--fg);
+        font-size: 11px;
+        padding: 4px 20px 4px 6px;
+        border-radius: 4px;
+        width: 100%;
+        cursor: pointer;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23888'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 6px center;
+      }
+      select:focus {
+        outline: none;
+        border-color: var(--accent);
+      }
+
       .stat-section {
         display: flex;
         flex-direction: column;
-        gap: 6px;
+        gap: 5px;
       }
       .stat-section h3 {
         font-size: 10px;
@@ -98,30 +131,30 @@
         color: var(--fg2);
       }
       .stat-big {
-        font-size: 26px;
+        font-size: 24px;
         font-weight: 700;
         letter-spacing: -0.03em;
         line-height: 1;
       }
       .stat-label {
-        font-size: 11px;
+        font-size: 10px;
         color: var(--fg2);
       }
 
       .tier-bar {
         display: flex;
         flex-direction: column;
-        gap: 4px;
+        gap: 3px;
       }
       .tier-row {
         display: flex;
         align-items: center;
-        gap: 6px;
-        font-size: 11px;
+        gap: 5px;
+        font-size: 10px;
       }
       .tier-color {
-        width: 10px;
-        height: 10px;
+        width: 9px;
+        height: 9px;
         border-radius: 2px;
         flex-shrink: 0;
       }
@@ -132,14 +165,14 @@
       .tier-jobs {
         text-align: right;
         white-space: nowrap;
-        font-size: 10px;
+        font-size: 9px;
       }
 
       .histogram {
         display: flex;
         align-items: flex-end;
         gap: 2px;
-        height: 44px;
+        height: 40px;
       }
       .histogram .bar {
         flex: 1;
@@ -157,24 +190,27 @@
       .hbar-chart {
         display: flex;
         flex-direction: column;
-        gap: 4px;
+        gap: 3px;
       }
       .hbar-row {
         display: flex;
         align-items: center;
-        gap: 6px;
-        font-size: 11px;
+        gap: 5px;
+        font-size: 10px;
       }
       .hbar-label {
-        width: 80px;
+        width: 72px;
         flex-shrink: 0;
         color: var(--fg2);
-        font-size: 10px;
+        font-size: 9px;
         text-align: right;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
       .hbar-track {
         flex: 1;
-        height: 10px;
+        height: 8px;
         background: rgba(255, 255, 255, 0.04);
         border-radius: 2px;
         overflow: hidden;
@@ -186,7 +222,7 @@
       .hbar-val {
         width: 22px;
         flex-shrink: 0;
-        font-size: 10px;
+        font-size: 9px;
         color: var(--fg);
         text-align: right;
       }
@@ -194,8 +230,8 @@
       .gradient-legend {
         display: flex;
         align-items: center;
-        gap: 6px;
-        font-size: 10px;
+        gap: 5px;
+        font-size: 9px;
         color: var(--fg2);
       }
       .gradient-legend canvas {
@@ -216,48 +252,53 @@
         background: var(--bg2);
         border: 1px solid rgba(255, 255, 255, 0.12);
         border-radius: 8px;
-        padding: 12px 16px;
-        font-size: 13px;
+        padding: 11px 14px;
+        font-size: 12px;
         line-height: 1.5;
-        max-width: 360px;
+        max-width: 340px;
         opacity: 0;
         transition: opacity 0.12s;
         z-index: 20;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7);
       }
       #tooltip.visible {
         opacity: 1;
       }
-      #tooltip .tt-title {
+      .tt-title {
         font-weight: 600;
-        font-size: 14px;
-        margin-bottom: 6px;
+        font-size: 13px;
+        margin-bottom: 4px;
         color: #fff;
       }
-      #tooltip .tt-exposure {
-        font-size: 12px;
-        margin-bottom: 8px;
+      .tt-bereich {
+        font-size: 10px;
+        color: var(--fg2);
+        margin-bottom: 6px;
       }
-      #tooltip .tt-stats {
+      .tt-exposure {
+        font-size: 11px;
+        margin-bottom: 7px;
+      }
+      .tt-stats {
         display: grid;
         grid-template-columns: auto auto;
-        gap: 2px 12px;
-        font-size: 12px;
+        gap: 2px 10px;
+        font-size: 11px;
       }
-      #tooltip .tt-stats .label {
+      .tt-stats .label {
         color: var(--fg2);
       }
-      #tooltip .tt-stats .value {
+      .tt-stats .value {
         color: var(--fg);
         text-align: right;
       }
-      #tooltip .tt-rationale {
-        font-size: 11px;
+      .tt-rationale {
+        font-size: 10px;
         color: var(--fg2);
-        margin-top: 8px;
+        margin-top: 7px;
         line-height: 1.4;
         border-top: 1px solid rgba(255, 255, 255, 0.06);
-        padding-top: 8px;
+        padding-top: 7px;
       }
     </style>
   </head>
@@ -268,11 +309,12 @@
           KI-Exposition des österreichischen Arbeitsmarkts
         </h1>
         <div class="subtitle" id="sidebarSubtitle">
-          Berufe &middot; Fläche = Häufigkeit &middot; Farbe = KI-Exposition<br />
+          Fläche = Beschäftigte · Farbe = KI-Exposition<br />
           Daten:
           <a href="https://www.berufslexikon.at/" target="_blank"
             >AMS Berufslexikon</a
-          >, bewertet von Gemini<br />
+          >
+          · Gemini<br />
           <a href="https://github.com/markus-barta/jobs-at" target="_blank"
             >GitHub</a
           >
@@ -284,19 +326,43 @@
         <div class="lang-btn" id="btnEN" onclick="setLang('en')">EN</div>
       </div>
 
+      <div class="filter-section">
+        <div class="filter-label" id="labelBereichFilter">Bereich</div>
+        <select id="filterBereich" onchange="applyFilter()">
+          <option value="">Alle Bereiche</option>
+        </select>
+      </div>
+
+      <div class="filter-section">
+        <div class="filter-label" id="labelSubbereichFilter">Subbereich</div>
+        <select id="filterSubbereich" onchange="applyFilter()">
+          <option value="">Alle Subbereiche</option>
+        </select>
+      </div>
+
+      <div class="filter-section">
+        <div class="filter-label" id="labelEduFilter">Ausbildung</div>
+        <select id="filterEdu" onchange="applyFilter()">
+          <option value="">Alle</option>
+        </select>
+      </div>
+
       <div class="stat-section">
         <h3 id="labelOccupations">Berufe</h3>
         <div class="stat-big" id="statOccupations">—</div>
+        <div class="stat-label" id="statHeadcount"></div>
       </div>
 
       <div class="stat-section">
-        <h3 id="labelAvg">Durchschn. KI-Exposition</h3>
+        <h3 id="labelAvg">Ø KI-Exposition</h3>
         <div class="stat-big" id="statAvgExposure">—</div>
-        <div class="stat-label" id="labelAvgSub">Skala 0–10</div>
+        <div class="stat-label" id="labelAvgSub">
+          Skala 0–10 · gewichtet nach Beschäftigten
+        </div>
       </div>
 
       <div class="stat-section">
-        <h3 id="labelHistogram">Verteilung nach KI-Exposition</h3>
+        <h3 id="labelHistogram">Verteilung</h3>
         <div class="histogram" id="histogram"></div>
         <div class="hist-labels">
           <span>0</span><span>5</span><span>10</span>
@@ -309,12 +375,7 @@
       </div>
 
       <div class="stat-section">
-        <h3 id="labelPayChart">KI-Exposition nach Gehalt</h3>
-        <div class="hbar-chart" id="payChart"></div>
-      </div>
-
-      <div class="stat-section">
-        <h3 id="labelEduChart">KI-Exposition nach Ausbildung</h3>
+        <h3 id="labelEduChart">Nach Ausbildung</h3>
         <div class="hbar-chart" id="eduChart"></div>
       </div>
 
@@ -334,44 +395,35 @@
 
     <div id="tooltip">
       <div class="tt-title"></div>
+      <div class="tt-bereich"></div>
       <div class="tt-exposure"></div>
       <div class="tt-stats"></div>
       <div class="tt-rationale"></div>
     </div>
 
     <script>
-      // ── i18n ───────────────────────────────────────────────────────────────
-
-      const STRINGS = {
+      // ── i18n ──────────────────────────────────────────────────────────────────
+      const S = {
         de: {
           sidebarTitle: "KI-Exposition des österreichischen Arbeitsmarkts",
-          sidebarSubtitle:
-            "Berufe &middot; Fläche = Häufigkeit &middot; Farbe = KI-Exposition<br>Daten: <a href='https://www.berufslexikon.at/' target='_blank'>AMS Berufslexikon</a>, bewertet von Gemini<br><a href='https://github.com/markus-barta/jobs-at' target='_blank'>GitHub</a>",
+          subtitle:
+            "Fläche = Beschäftigte · Farbe = KI-Exposition<br>Daten: <a href='https://www.berufslexikon.at/' target='_blank'>AMS Berufslexikon</a> · Gemini<br><a href='https://github.com/markus-barta/jobs-at' target='_blank'>GitHub</a>",
+          labelBereichFilter: "Bereich",
+          labelSubbereichFilter: "Subbereich",
+          labelEduFilter: "Ausbildung",
+          allBereiche: "Alle Bereiche",
+          allSubbereiche: "Alle Subbereiche",
+          allEdu: "Alle",
           labelOccupations: "Berufe",
-          labelAvg: "Durchschn. KI-Exposition",
-          labelAvgSub: "Skala 0–10",
-          labelHistogram: "Verteilung nach KI-Exposition",
+          labelAvg: "Ø KI-Exposition",
+          labelAvgSub: "Skala 0–10 · gewichtet nach Beschäftigten",
+          labelHistogram: "Verteilung",
           labelTiers: "Expositions-Stufen",
-          labelPayChart: "KI-Exposition nach Gehalt",
-          labelEduChart: "KI-Exposition nach Ausbildung",
+          labelEduChart: "Nach Ausbildung",
           labelOutlook: "Berufsaussichten",
           legendLow: "Niedrig",
           legendHigh: "Hoch",
           tiers: ["Minimal", "Gering", "Moderat", "Hoch", "Sehr hoch"],
-          payBands: [
-            "<€1.800",
-            "€1.800–2.500",
-            "€2.500–3.500",
-            "€3.500–5.000",
-            "€5.000+",
-          ],
-          eduGroups: [
-            "Hilfs-/Anlernberuf",
-            "Lehre",
-            "Schule",
-            "Kurz-/Spezialausb.",
-            "Uni/FH/PH",
-          ],
           outlookLabels: {
             positive: "Positiv",
             neutral: "Neutral",
@@ -379,35 +431,32 @@
           },
           ttExposure: "KI-Exposition",
           ttSalary: "Einstiegsgehalt (KV)",
-          ttCategory: "Bereich",
-          ttEducation: "Ausbildung",
+          ttHeadcount: "Beschäftigte (ca.)",
+          ttIsco: "ISCO-08",
+          ttEdu: "Ausbildung",
           ttOutlook: "Berufsaussichten",
-          ttOccupations: "Berufe",
-          jobsSuffix: " Berufe",
+          employedSuffix: " Beschäftigte",
         },
         en: {
           sidebarTitle: "AI Exposure of the Austrian Job Market",
-          sidebarSubtitle:
-            "Occupations &middot; area = frequency &middot; color = AI exposure<br>Data: <a href='https://www.berufslexikon.at/' target='_blank'>AMS Berufslexikon</a>, scored by Gemini<br><a href='https://github.com/markus-barta/jobs-at' target='_blank'>GitHub</a>",
+          subtitle:
+            "Area = workers · Color = AI exposure<br>Data: <a href='https://www.berufslexikon.at/' target='_blank'>AMS Berufslexikon</a> · Gemini<br><a href='https://github.com/markus-barta/jobs-at' target='_blank'>GitHub</a>",
+          labelBereichFilter: "Sector",
+          labelSubbereichFilter: "Sub-sector",
+          labelEduFilter: "Education",
+          allBereiche: "All sectors",
+          allSubbereiche: "All sub-sectors",
+          allEdu: "All",
           labelOccupations: "Occupations",
           labelAvg: "Avg. AI Exposure",
-          labelAvgSub: "0–10 scale",
-          labelHistogram: "Distribution by AI exposure",
+          labelAvgSub: "0–10 scale · weighted by workers",
+          labelHistogram: "Distribution",
           labelTiers: "Exposure tiers",
-          labelPayChart: "Exposure by salary",
-          labelEduChart: "Exposure by education",
+          labelEduChart: "By education",
           labelOutlook: "Job outlook",
           legendLow: "Low",
           legendHigh: "High",
           tiers: ["Minimal", "Low", "Moderate", "High", "Very high"],
-          payBands: ["<€1.8K", "€1.8–2.5K", "€2.5–3.5K", "€3.5–5K", "€5K+"],
-          eduGroups: [
-            "Helper/Unskilled",
-            "Apprenticeship",
-            "Vocational school",
-            "Short course",
-            "University",
-          ],
           outlookLabels: {
             positive: "Positive",
             neutral: "Neutral",
@@ -415,25 +464,28 @@
           },
           ttExposure: "AI Exposure",
           ttSalary: "Entry salary (KV)",
-          ttCategory: "Category",
-          ttEducation: "Education",
+          ttHeadcount: "Workers (est.)",
+          ttIsco: "ISCO-08",
+          ttEdu: "Education",
           ttOutlook: "Outlook",
-          ttOccupations: "Occupations",
-          jobsSuffix: " occupations",
+          employedSuffix: " workers",
         },
       };
-
       let lang = "de";
 
       function setLang(l) {
         lang = l;
         document.getElementById("btnDE").classList.toggle("active", l === "de");
         document.getElementById("btnEN").classList.toggle("active", l === "en");
-        const s = STRINGS[l];
-        document.getElementById("sidebarTitle").textContent =
-          s.sidebarTitle.replace(/&middot;/g, "·");
-        document.getElementById("sidebarSubtitle").innerHTML =
-          s.sidebarSubtitle;
+        const s = S[l];
+        document.getElementById("sidebarTitle").textContent = s.sidebarTitle;
+        document.getElementById("sidebarSubtitle").innerHTML = s.subtitle;
+        document.getElementById("labelBereichFilter").textContent =
+          s.labelBereichFilter;
+        document.getElementById("labelSubbereichFilter").textContent =
+          s.labelSubbereichFilter;
+        document.getElementById("labelEduFilter").textContent =
+          s.labelEduFilter;
         document.getElementById("labelOccupations").textContent =
           s.labelOccupations;
         document.getElementById("labelAvg").textContent = s.labelAvg;
@@ -441,19 +493,24 @@
         document.getElementById("labelHistogram").textContent =
           s.labelHistogram;
         document.getElementById("labelTiers").textContent = s.labelTiers;
-        document.getElementById("labelPayChart").textContent = s.labelPayChart;
         document.getElementById("labelEduChart").textContent = s.labelEduChart;
         document.getElementById("labelOutlook").textContent = s.labelOutlook;
         document.getElementById("legendLow").textContent = s.legendLow;
         document.getElementById("legendHigh").textContent = s.legendHigh;
-        if (data.length) computeStats();
-        draw();
+        document.getElementById("filterBereich").options[0].text =
+          s.allBereiche;
+        document.getElementById("filterSubbereich").options[0].text =
+          s.allSubbereiche;
+        document.getElementById("filterEdu").options[0].text = s.allEdu;
+        if (allData.length) {
+          computeStats();
+          draw();
+        }
       }
 
-      // ── Exposure color scale ───────────────────────────────────────────────
-
+      // ── Color scale ───────────────────────────────────────────────────────────
       function exposureColor(score) {
-        if (score == null) return [128, 128, 128];
+        if (score == null) return [100, 100, 110];
         const t = Math.max(0, Math.min(10, score)) / 10;
         let r, g, b;
         if (t < 0.5) {
@@ -469,167 +526,163 @@
         }
         return [r, g, b];
       }
-
-      function exposureColorCSS(score, alpha) {
+      function exposureCSS(score, alpha) {
         const [r, g, b] = exposureColor(score);
         return `rgba(${r},${g},${b},${alpha})`;
       }
 
-      // ── Squarified treemap layout ──────────────────────────────────────────
+      // Distinct hue per Bereich
+      const BEREICH_COLORS = [
+        "#e74c3c",
+        "#e67e22",
+        "#f1c40f",
+        "#2ecc71",
+        "#1abc9c",
+        "#3498db",
+        "#9b59b6",
+        "#e91e63",
+        "#00bcd4",
+        "#8bc34a",
+        "#ff5722",
+        "#607d8b",
+        "#795548",
+        "#ff9800",
+        "#673ab7",
+      ];
+      const bereichColorMap = {};
+      let colorIdx = 0;
+      function bereichColor(b) {
+        if (!b) return "#444";
+        if (!bereichColorMap[b])
+          bereichColorMap[b] =
+            BEREICH_COLORS[colorIdx++ % BEREICH_COLORS.length];
+        return bereichColorMap[b];
+      }
 
+      // ── Squarified treemap ────────────────────────────────────────────────────
       function squarify(items, x, y, w, h) {
-        if (items.length === 0) return [];
-        if (items.length === 1) {
+        if (!items.length) return [];
+        if (items.length === 1)
           return [{ ...items[0], rx: x, ry: y, rw: w, rh: h }];
-        }
         const total = items.reduce((s, d) => s + d.value, 0);
-        if (total === 0) return [];
-
+        if (!total) return [];
         const results = [];
-        let remaining = [...items];
-        let cx = x,
+        let rem = [...items],
+          cx = x,
           cy = y,
           cw = w,
           ch = h;
-
-        while (remaining.length > 0) {
-          const remTotal = remaining.reduce((s, d) => s + d.value, 0);
-          const vertical = cw >= ch;
-          const side = vertical ? ch : cw;
-
-          let row = [remaining[0]];
-          let rowSum = remaining[0].value;
-
-          for (let i = 1; i < remaining.length; i++) {
-            const candidate = [...row, remaining[i]];
-            const candidateSum = rowSum + remaining[i].value;
+        while (rem.length) {
+          const remTotal = rem.reduce((s, d) => s + d.value, 0);
+          const vert = cw >= ch,
+            side = vert ? ch : cw;
+          let row = [rem[0]],
+            rs = rem[0].value;
+          for (let i = 1; i < rem.length; i++) {
+            const c = [...row, rem[i]],
+              cs = rs + rem[i].value;
             if (
-              worstAspect(
-                candidate,
-                candidateSum,
-                side,
-                remTotal,
-                vertical ? cw : ch,
-              ) < worstAspect(row, rowSum, side, remTotal, vertical ? cw : ch)
+              worstAspect(c, cs, side, remTotal, vert ? cw : ch) <
+              worstAspect(row, rs, side, remTotal, vert ? cw : ch)
             ) {
-              row = candidate;
-              rowSum = candidateSum;
+              row = c;
+              rs = cs;
             } else break;
           }
-
-          const rowFraction = rowSum / remTotal;
-          const rowThickness = vertical ? cw * rowFraction : ch * rowFraction;
-          let offset = 0;
-
+          const rf = rs / remTotal,
+            rt = vert ? cw * rf : ch * rf;
+          let off = 0;
           for (const item of row) {
-            const itemFraction = item.value / rowSum;
-            const itemLength = side * itemFraction;
-            if (vertical) {
-              results.push({
-                ...item,
-                rx: cx,
-                ry: cy + offset,
-                rw: rowThickness,
-                rh: itemLength,
-              });
-            } else {
-              results.push({
-                ...item,
-                rx: cx + offset,
-                ry: cy,
-                rw: itemLength,
-                rh: rowThickness,
-              });
-            }
-            offset += itemLength;
+            const il = side * (item.value / rs);
+            results.push(
+              vert
+                ? { ...item, rx: cx, ry: cy + off, rw: rt, rh: il }
+                : { ...item, rx: cx + off, ry: cy, rw: il, rh: rt },
+            );
+            off += il;
           }
-
-          if (vertical) {
-            cx += rowThickness;
-            cw -= rowThickness;
+          if (vert) {
+            cx += rt;
+            cw -= rt;
           } else {
-            cy += rowThickness;
-            ch -= rowThickness;
+            cy += rt;
+            ch -= rt;
           }
-
-          remaining = remaining.slice(row.length);
+          rem = rem.slice(row.length);
         }
         return results;
       }
-
-      function worstAspect(row, rowSum, side, totalArea, availableExtent) {
-        const rowExtent = availableExtent * (rowSum / totalArea);
-        if (rowExtent === 0) return Infinity;
+      function worstAspect(row, rs, side, total, avail) {
+        const ext = avail * (rs / total);
+        if (!ext) return Infinity;
         let worst = 0;
         for (const item of row) {
-          const itemLen = side * (item.value / rowSum);
-          if (itemLen === 0) continue;
-          const aspect = Math.max(rowExtent / itemLen, itemLen / rowExtent);
-          if (aspect > worst) worst = aspect;
+          const il = side * (item.value / rs);
+          if (!il) continue;
+          const a = Math.max(ext / il, il / ext);
+          if (a > worst) worst = a;
         }
         return worst;
       }
 
-      // ── Rendering ──────────────────────────────────────────────────────────
-
-      let data = [];
-      let rects = [];
-      let hovered = null;
-
-      const canvas = document.getElementById("canvas");
-      const ctx = canvas.getContext("2d");
+      // ── State ─────────────────────────────────────────────────────────────────
+      let allData = [],
+        filteredData = [],
+        rects = [],
+        bereichRects = [],
+        hovered = null;
+      const canvas = document.getElementById("canvas"),
+        ctx = canvas.getContext("2d");
       let dpr = window.devicePixelRatio || 1;
+      const MARGIN = 10,
+        GAP = 1.5;
 
-      const MARGIN = 12;
-      const GAP = 1.5;
-
+      // ── Layout & draw ─────────────────────────────────────────────────────────
       function layout() {
-        const sidebarW = parseInt(
+        const sw = parseInt(
           getComputedStyle(document.documentElement).getPropertyValue(
             "--sidebar-w",
           ),
         );
-        const w = window.innerWidth - sidebarW;
-        const h = window.innerHeight;
-
+        const w = window.innerWidth - sw,
+          h = window.innerHeight;
         canvas.width = w * dpr;
         canvas.height = h * dpr;
         canvas.style.width = w + "px";
         canvas.style.height = h + "px";
-
         const tx = MARGIN,
-          ty = MARGIN;
-        const tw = w - MARGIN * 2,
+          ty = MARGIN,
+          tw = w - MARGIN * 2,
           th = h - MARGIN * 2;
 
-        const byCategory = {};
-        for (const d of data) {
-          const cat = d.category || "Sonstige";
-          if (!byCategory[cat]) byCategory[cat] = [];
-          byCategory[cat].push(d);
+        const byB = {};
+        for (const d of filteredData) {
+          const b = d.bereich || "(Sonstige)";
+          if (!byB[b]) byB[b] = [];
+          byB[b].push(d);
         }
-
-        const categories = Object.keys(byCategory)
-          .map((cat) => ({
-            cat,
-            items: byCategory[cat].sort((a, b) => b.value - a.value),
-            value: byCategory[cat].reduce((s, d) => s + d.value, 0),
+        const cats = Object.keys(byB)
+          .map((b) => ({
+            b,
+            items: byB[b],
+            value: byB[b].reduce((s, d) => s + (d.value || 1), 0),
           }))
           .sort((a, b) => b.value - a.value);
 
-        const catRects = squarify(categories, tx, ty, tw, th);
-
+        const catRects = squarify(cats, tx, ty, tw, th);
         rects = [];
+        bereichRects = [];
         for (const cr of catRects) {
-          const items = cr.items.map((d) => ({ ...d }));
-          const innerRects = squarify(
-            items,
+          bereichRects.push(cr);
+          const inner = cr.items.map((d) => ({ ...d }));
+          const ir = squarify(
+            inner,
             cr.rx + GAP,
             cr.ry + GAP,
             cr.rw - GAP * 2,
             cr.rh - GAP * 2,
           );
-          rects.push(...innerRects);
+          rects.push(...ir);
         }
       }
 
@@ -639,60 +692,98 @@
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         ctx.fillStyle = "#0a0a0f";
         ctx.fillRect(0, 0, w / dpr, h / dpr);
+        const g = GAP / 2;
 
+        // Bereich group outlines
+        for (const br of bereichRects) {
+          const col = bereichColor(br.b);
+          ctx.strokeStyle = col;
+          ctx.globalAlpha = 0.3;
+          ctx.lineWidth = 1.5;
+          ctx.strokeRect(br.rx + g, br.ry + g, br.rw - g * 2, br.rh - g * 2);
+          ctx.globalAlpha = 1;
+        }
+
+        // Job tiles
         for (const r of rects) {
-          const isHovered = r === hovered;
-          const g = GAP / 2;
+          const isHov = r === hovered;
           const rx = r.rx + g,
-            ry = r.ry + g;
-          const rw = r.rw - g * 2,
+            ry = r.ry + g,
+            rw = r.rw - g * 2,
             rh = r.rh - g * 2;
           if (rw <= 0 || rh <= 0) continue;
 
-          ctx.fillStyle = exposureColorCSS(r.exposure, isHovered ? 0.85 : 0.5);
+          ctx.fillStyle = exposureCSS(r.exposure, isHov ? 0.9 : 0.58);
           ctx.fillRect(rx, ry, rw, rh);
 
-          if (isHovered) {
+          if (isHov) {
             ctx.strokeStyle = "#fff";
             ctx.lineWidth = 2;
             ctx.strokeRect(rx, ry, rw, rh);
           }
 
-          if (rw > 50 && rh > 18) {
+          // Text label — only if tile is wide/tall enough
+          if (rw > 32 && rh > 12) {
             ctx.save();
             ctx.beginPath();
-            ctx.rect(rx + 4, ry + 2, rw - 8, rh - 4);
+            ctx.rect(rx + 3, ry + 2, rw - 6, rh - 3);
             ctx.clip();
-
-            const fontSize = Math.min(
-              13,
-              Math.max(9, Math.min(rw / 10, rh / 3)),
-            );
-            ctx.font = `500 ${fontSize}px -apple-system, system-ui, sans-serif`;
-            ctx.fillStyle = isHovered ? "#fff" : "rgba(255,255,255,0.85)";
+            const fs = Math.min(12, Math.max(7.5, Math.min(rw / 9, rh / 2.8)));
+            ctx.font = `500 ${fs}px -apple-system,system-ui,sans-serif`;
+            ctx.fillStyle = isHov ? "#fff" : "rgba(255,255,255,0.9)";
             ctx.textBaseline = "top";
-            ctx.fillText(r.title, rx + 5, ry + 4);
 
-            if (rh > 34 && rw > 60) {
-              const info = r.exposure != null ? r.exposure + "/10" : "";
-              ctx.font = `400 ${Math.max(8, fontSize - 2)}px -apple-system, system-ui, sans-serif`;
-              ctx.fillStyle = "rgba(255,255,255,0.5)";
-              ctx.fillText(info, rx + 5, ry + 4 + fontSize + 2);
+            // Fit title into tile width
+            let title = r.title;
+            const maxW = rw - 8;
+            if (ctx.measureText(title).width > maxW) {
+              // Try abbreviating: keep until it fits, add ellipsis
+              while (
+                title.length > 2 &&
+                ctx.measureText(title + "…").width > maxW
+              )
+                title = title.slice(0, -1);
+              title += "…";
+            }
+            ctx.fillText(title, rx + 4, ry + 3);
+
+            // Score sub-label
+            if (rh > 26 && rw > 42 && r.exposure != null) {
+              ctx.font = `400 ${Math.max(7, fs - 2)}px -apple-system,system-ui,sans-serif`;
+              ctx.fillStyle = "rgba(255,255,255,0.42)";
+              ctx.fillText(`${r.exposure}/10`, rx + 4, ry + 3 + fs + 2);
             }
             ctx.restore();
           }
         }
+
+        // Bereich name labels (top-left corner of group, if large enough)
+        for (const br of bereichRects) {
+          if (br.rw < 70 || br.rh < 22) continue;
+          const col = bereichColor(br.b);
+          const shortLabel = (br.b || "").replace(/,.*$/, "").toUpperCase();
+          ctx.save();
+          ctx.beginPath();
+          ctx.rect(br.rx + 4, br.ry + 4, br.rw - 8, 13);
+          ctx.clip();
+          ctx.font = "600 8.5px -apple-system,system-ui,sans-serif";
+          ctx.fillStyle = col;
+          ctx.globalAlpha = 0.55;
+          ctx.textBaseline = "top";
+          ctx.fillText(shortLabel, br.rx + 5, br.ry + 5);
+          ctx.restore();
+          ctx.globalAlpha = 1;
+        }
       }
 
-      // ── Hit test ───────────────────────────────────────────────────────────
-
+      // ── Hit test ──────────────────────────────────────────────────────────────
       function hitTest(mx, my) {
-        const sidebarW = parseInt(
+        const sw = parseInt(
           getComputedStyle(document.documentElement).getPropertyValue(
             "--sidebar-w",
           ),
         );
-        const cx = mx - sidebarW,
+        const cx = mx - sw,
           cy = my;
         for (let i = rects.length - 1; i >= 0; i--) {
           const r = rects[i];
@@ -702,198 +793,228 @@
         return null;
       }
 
-      // ── Format helpers ─────────────────────────────────────────────────────
-
-      function formatSalary(min, max) {
+      // ── Tooltip ───────────────────────────────────────────────────────────────
+      function fmtNum(n) {
+        if (!n) return "—";
+        if (n >= 1e6) return (n / 1e6).toFixed(1) + "M";
+        if (n >= 1000) return Math.round(n / 1000) + "K";
+        return n.toLocaleString("de-AT");
+      }
+      function fmtSalary(min, max) {
         if (!min && !max) return "—";
-        const fmt = (n) => "€\u202f" + Number(n).toLocaleString("de-AT");
-        if (min && max && min !== max) return fmt(min) + "–" + fmt(max);
-        return fmt(min || max);
+        const f = (n) => "€\u202f" + Number(n).toLocaleString("de-AT");
+        if (min && max && min !== max) return f(min) + "–" + f(max) + "/Mo.";
+        return f(min || max) + "/Mo.";
       }
 
-      // ── Tooltip ────────────────────────────────────────────────────────────
-
       function showTooltip(d, mx, my) {
-        const tt = document.getElementById("tooltip");
-        const s = STRINGS[lang];
-
+        const tt = document.getElementById("tooltip"),
+          s = S[lang];
         tt.querySelector(".tt-title").textContent = d.title;
+        tt.querySelector(".tt-bereich").textContent = [d.bereich, d.subbereich]
+          .filter(Boolean)
+          .join(" › ");
 
-        const score = d.exposure;
-        if (score != null) {
-          const barW = score * 10;
-          const color = exposureColorCSS(score, 1);
+        if (d.exposure != null) {
+          const col = exposureCSS(d.exposure, 1);
           tt.querySelector(".tt-exposure").innerHTML =
-            `<span style="color:${color};font-weight:600;">${s.ttExposure}: ${score}/10</span>` +
-            `<div style="margin-top:3px;height:4px;background:rgba(255,255,255,0.08);border-radius:2px;">` +
-            `<div style="height:100%;width:${barW}%;background:${color};border-radius:2px;"></div></div>`;
-        } else {
-          tt.querySelector(".tt-exposure").innerHTML = "";
-        }
+            `<span style="color:${col};font-weight:600;">${s.ttExposure}: ${d.exposure}/10</span>` +
+            `<div style="margin-top:3px;height:3px;background:rgba(255,255,255,0.08);border-radius:2px;">` +
+            `<div style="height:100%;width:${d.exposure * 10}%;background:${col};border-radius:2px;"></div></div>`;
+        } else tt.querySelector(".tt-exposure").innerHTML = "";
 
-        const outlookLabel = d.outlook
-          ? s.outlookLabels[d.outlook] || d.outlook
-          : "—";
-        const outlookSuffix = d.outlook_text
-          ? ` · ${d.outlook_text.substring(0, 80)}…`
-          : "";
-
+        const ol = d.outlook ? s.outlookLabels[d.outlook] || d.outlook : "—";
         tt.querySelector(".tt-stats").innerHTML = `
-    <span class="label">${s.ttSalary}</span><span class="value">${formatSalary(d.salary_min, d.salary_max)}/Mo.</span>
-    <span class="label">${s.ttCategory}</span><span class="value" style="text-align:right;max-width:180px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${d.category || "—"}</span>
-    <span class="label">${s.ttEducation}</span><span class="value">${d.ausbildung || "—"}</span>
-    <span class="label">${s.ttOutlook}</span><span class="value">${outlookLabel}</span>
+    <span class="label">${s.ttSalary}</span><span class="value">${fmtSalary(d.salary_min, d.salary_max)}</span>
+    <span class="label">${s.ttHeadcount}</span><span class="value">${fmtNum(d.headcount)}</span>
+    <span class="label">${s.ttEdu}</span><span class="value">${d.ausbildung || "—"}</span>
+    <span class="label">${s.ttOutlook}</span><span class="value">${ol}</span>
+    ${d.isco_code ? `<span class="label">${s.ttIsco}</span><span class="value">${d.isco_code}</span>` : ""}
   `;
-
         tt.querySelector(".tt-rationale").textContent = d.rationale || "";
 
-        const pad = 16;
+        const pad = 14;
         let tx = mx + pad,
           ty = my - pad;
-        if (tx + 360 > window.innerWidth) tx = mx - 360 - pad;
-        if (ty < 10) ty = my + pad;
+        if (tx + 340 > window.innerWidth) tx = mx - 340 - pad;
+        if (ty < 8) ty = my + pad;
         if (ty + 220 > window.innerHeight) ty = my - 220;
         tt.style.left = tx + "px";
         tt.style.top = ty + "px";
         tt.classList.add("visible");
       }
-
       function hideTooltip() {
         document.getElementById("tooltip").classList.remove("visible");
       }
 
-      // ── Sidebar stats ──────────────────────────────────────────────────────
+      // ── Filters ───────────────────────────────────────────────────────────────
+      function buildFilters() {
+        const s = S[lang];
+        const bereiche = [
+          ...new Set(allData.map((d) => d.bereich).filter(Boolean)),
+        ].sort();
+        document.getElementById("filterBereich").innerHTML =
+          `<option value="">${s.allBereiche}</option>` +
+          bereiche.map((b) => `<option value="${b}">${b}</option>`).join("");
 
+        const edus = [
+          ...new Set(allData.map((d) => d.ausbildung).filter(Boolean)),
+        ].sort();
+        document.getElementById("filterEdu").innerHTML =
+          `<option value="">${s.allEdu}</option>` +
+          edus.map((e) => `<option value="${e}">${e}</option>`).join("");
+
+        document.getElementById("filterSubbereich").innerHTML =
+          `<option value="">${s.allSubbereiche}</option>`;
+      }
+
+      function applyFilter() {
+        const bereich = document.getElementById("filterBereich").value;
+        const edu = document.getElementById("filterEdu").value;
+        const s = S[lang];
+
+        // Rebuild subbereich list based on selected bereich
+        const subSel = document.getElementById("filterSubbereich");
+        const prevSub = subSel.value;
+        const subs = [
+          ...new Set(
+            allData
+              .filter((d) => !bereich || d.bereich === bereich)
+              .map((d) => d.subbereich)
+              .filter(Boolean),
+          ),
+        ].sort();
+        subSel.innerHTML =
+          `<option value="">${s.allSubbereiche}</option>` +
+          subs.map((sb) => `<option value="${sb}">${sb}</option>`).join("");
+        if (prevSub && subs.includes(prevSub)) subSel.value = prevSub;
+        const subbereich = subSel.value;
+
+        filteredData = allData.filter(
+          (d) =>
+            (!bereich || d.bereich === bereich) &&
+            (!subbereich || d.subbereich === subbereich) &&
+            (!edu || d.ausbildung === edu),
+        );
+
+        layout();
+        draw();
+        computeStats();
+      }
+
+      // ── Sidebar stats ─────────────────────────────────────────────────────────
       function computeStats() {
-        const s = STRINGS[lang];
-        const total = data.length;
+        const s = S[lang],
+          data = filteredData,
+          total = data.length;
 
-        // Average exposure (simple, unweighted — no job counts from AMS)
-        const withScore = data.filter((d) => d.exposure != null);
-        const avg = withScore.length
-          ? withScore.reduce((sum, d) => sum + d.exposure, 0) / withScore.length
-          : 0;
+        let wSum = 0,
+          wCount = 0,
+          hcTotal = 0;
+        for (const d of data) {
+          const w = d.headcount || 1;
+          hcTotal += d.headcount || 0;
+          if (d.exposure != null) {
+            wSum += d.exposure * w;
+            wCount += w;
+          }
+        }
+        const avg = wCount > 0 ? wSum / wCount : 0;
 
         document.getElementById("statOccupations").textContent =
           total.toLocaleString("de-AT");
+        document.getElementById("statHeadcount").textContent =
+          hcTotal > 0 ? `~${fmtNum(hcTotal)}${s.employedSuffix}` : "";
         document.getElementById("statAvgExposure").innerHTML =
-          `<span style="color:${exposureColorCSS(avg, 1)}">${avg.toFixed(1)}</span>`;
+          `<span style="color:${exposureCSS(avg, 1)}">${avg.toFixed(1)}</span>`;
 
-        // Histogram: count per score 0-10
-        const histogram = new Array(11).fill(0);
-        for (const d of withScore) histogram[Math.round(d.exposure)]++;
-        const maxH = Math.max(...histogram);
-        const histEl = document.getElementById("histogram");
-        histEl.innerHTML = histogram
+        // Histogram (weighted by headcount)
+        const hist = new Array(11).fill(0);
+        for (const d of data)
+          if (d.exposure != null)
+            hist[Math.round(d.exposure)] += d.headcount || 1;
+        const maxH = Math.max(...hist);
+        document.getElementById("histogram").innerHTML = hist
           .map(
-            (count, i) =>
-              `<div class="bar" style="height:${maxH > 0 ? Math.max(2, (count / maxH) * 100) : 2}%;background:${exposureColorCSS(i, 0.7)}" title="${i}: ${count}"></div>`,
+            (v, i) =>
+              `<div class="bar" style="height:${maxH > 0 ? Math.max(2, (v / maxH) * 100) : 2}%;background:${exposureCSS(i, 0.7)}" title="${i}: ${fmtNum(v)}"></div>`,
           )
           .join("");
 
-        // Exposure tiers
+        // Tiers
         const tierDefs = [
-          { range: [0, 1] },
-          { range: [2, 3] },
-          { range: [4, 5] },
-          { range: [6, 7] },
-          { range: [8, 10] },
+          [0, 1],
+          [2, 3],
+          [4, 5],
+          [6, 7],
+          [8, 10],
         ];
-        const tierEl = document.getElementById("tierBar");
-        tierEl.innerHTML = tierDefs
-          .map((t, idx) => {
-            const count = withScore.filter(
-              (d) => d.exposure >= t.range[0] && d.exposure <= t.range[1],
-            ).length;
-            const pct =
-              withScore.length > 0 ? (count / withScore.length) * 100 : 0;
-            const midScore = (t.range[0] + t.range[1]) / 2;
+        document.getElementById("tierBar").innerHTML = tierDefs
+          .map((range, idx) => {
+            const w = data
+              .filter(
+                (d) =>
+                  d.exposure != null &&
+                  d.exposure >= range[0] &&
+                  d.exposure <= range[1],
+              )
+              .reduce((sum, d) => sum + (d.headcount || 1), 0);
+            const pct = wCount > 0 ? (w / wCount) * 100 : 0;
             return `<div class="tier-row">
-      <div class="tier-color" style="background:${exposureColorCSS(midScore, 1)}"></div>
-      <span class="tier-name">${s.tiers[idx]} (${t.range[0]}–${t.range[1]})</span>
-      <span class="tier-jobs">${count} &middot; ${pct.toFixed(0)}%</span>
+      <div class="tier-color" style="background:${exposureCSS((range[0] + range[1]) / 2, 1)}"></div>
+      <span class="tier-name">${s.tiers[idx]} (${range[0]}–${range[1]})</span>
+      <span class="tier-jobs">${fmtNum(w)} · ${pct.toFixed(0)}%</span>
     </div>`;
           })
           .join("");
 
-        // Exposure by monthly salary band
-        const payBandDefs = [
-          { min: 0, max: 1800 },
-          { min: 1800, max: 2500 },
-          { min: 2500, max: 3500 },
-          { min: 3500, max: 5000 },
-          { min: 5000, max: Infinity },
-        ];
-        const payChartEl = document.getElementById("payChart");
-        payChartEl.innerHTML = payBandDefs
-          .map((band, idx) => {
-            const group = withScore.filter(
-              (d) =>
-                d.salary_mid != null &&
-                d.salary_mid >= band.min &&
-                d.salary_mid < band.max,
-            );
-            const avg2 = group.length
-              ? group.reduce((sum, d) => sum + d.exposure, 0) / group.length
-              : 0;
-            const pct = (avg2 / 10) * 100;
+        // Education chart
+        const eduTypes = [
+          ...new Set(data.map((d) => d.ausbildung).filter(Boolean)),
+        ].sort();
+        document.getElementById("eduChart").innerHTML = eduTypes
+          .map((edu) => {
+            const grp = data.filter((d) => d.ausbildung === edu);
+            const gw = grp.reduce((sum, d) => sum + (d.headcount || 1), 0);
+            const gwExp = grp
+              .filter((d) => d.exposure != null)
+              .reduce((sum, d) => sum + d.exposure * (d.headcount || 1), 0);
+            const gc = grp
+              .filter((d) => d.exposure != null)
+              .reduce((sum, d) => sum + (d.headcount || 1), 0);
+            const avgE = gc > 0 ? gwExp / gc : 0;
             return `<div class="hbar-row">
-      <span class="hbar-label">${s.payBands[idx]}</span>
-      <div class="hbar-track"><div class="hbar-fill" style="width:${pct}%;background:${exposureColorCSS(avg2, 0.8)}"></div></div>
-      <span class="hbar-val">${group.length ? avg2.toFixed(1) : "—"}</span>
+      <span class="hbar-label" title="${edu}">${edu}</span>
+      <div class="hbar-track"><div class="hbar-fill" style="width:${(avgE / 10) * 100}%;background:${exposureCSS(avgE, 0.8)}"></div></div>
+      <span class="hbar-val">${grp.length ? avgE.toFixed(1) : "—"}</span>
     </div>`;
           })
           .join("");
 
-        // Exposure by education type
-        const eduKeys = [
-          "Hilfs-/Anlernberuf",
-          "Lehre",
-          "Schule",
-          "Kurz-/Spezialausbildung",
-          "Uni/FH/PH",
-        ];
-        const eduChartEl = document.getElementById("eduChart");
-        eduChartEl.innerHTML = eduKeys
-          .map((key, idx) => {
-            const group = withScore.filter(
-              (d) => d.ausbildung && d.ausbildung.includes(key.split(" ")[0]),
-            );
-            const avg2 = group.length
-              ? group.reduce((sum, d) => sum + d.exposure, 0) / group.length
-              : 0;
-            const pct = (avg2 / 10) * 100;
-            return `<div class="hbar-row">
-      <span class="hbar-label">${s.eduGroups[idx]}</span>
-      <div class="hbar-track"><div class="hbar-fill" style="width:${pct}%;background:${exposureColorCSS(avg2, 0.8)}"></div></div>
-      <span class="hbar-val">${group.length ? avg2.toFixed(1) : "—"}</span>
-    </div>`;
-          })
-          .join("");
-
-        // Outlook breakdown
-        const outlookDefs = ["positive", "neutral", "negative"];
+        // Outlook
         const outlookColors = {
           positive: "#4caf50",
-          neutral: "#888",
+          neutral: "#555",
           negative: "#e53935",
         };
-        const outlookEl = document.getElementById("outlookChart");
-        outlookEl.innerHTML = outlookDefs
+        document.getElementById("outlookChart").innerHTML = [
+          "positive",
+          "neutral",
+          "negative",
+        ]
           .map((key) => {
-            const count = data.filter((d) => d.outlook === key).length;
-            const pct = total > 0 ? (count / total) * 100 : 0;
+            const cnt = data.filter((d) => d.outlook === key).length;
+            const pct = total > 0 ? (cnt / total) * 100 : 0;
             return `<div class="hbar-row">
       <span class="hbar-label">${s.outlookLabels[key]}</span>
       <div class="hbar-track"><div class="hbar-fill" style="width:${pct}%;background:${outlookColors[key]}"></div></div>
-      <span class="hbar-val">${count}</span>
+      <span class="hbar-val">${cnt}</span>
     </div>`;
           })
           .join("");
       }
 
-      // ── Events ─────────────────────────────────────────────────────────────
-
+      // ── Events ────────────────────────────────────────────────────────────────
       canvas.addEventListener("mousemove", (e) => {
         const hit = hitTest(e.clientX, e.clientY);
         if (hit !== hovered) {
@@ -908,52 +1029,47 @@
           canvas.style.cursor = "default";
         }
       });
-
       canvas.addEventListener("click", (e) => {
         const hit = hitTest(e.clientX, e.clientY);
         if (hit && hit.url) window.open(hit.url, "_blank");
       });
-
       canvas.addEventListener("mouseleave", () => {
         hovered = null;
         hideTooltip();
         draw();
       });
-
       function resize() {
         dpr = window.devicePixelRatio || 1;
         layout();
         draw();
       }
+      window.addEventListener("resize", resize);
 
-      // ── Legend gradient ────────────────────────────────────────────────────
-
+      // ── Gradient legend ───────────────────────────────────────────────────────
       function drawGradientLegend() {
-        const c = document.getElementById("gradientLegend");
-        const gctx = c.getContext("2d");
+        const c = document.getElementById("gradientLegend"),
+          gc = c.getContext("2d");
         for (let x = 0; x < 80; x++) {
-          gctx.fillStyle = exposureColorCSS((x / 79) * 10, 1);
-          gctx.fillRect(x, 0, 1, 8);
+          gc.fillStyle = exposureCSS((x / 79) * 10, 1);
+          gc.fillRect(x, 0, 1, 8);
         }
       }
 
-      // ── Load ───────────────────────────────────────────────────────────────
-
+      // ── Load ──────────────────────────────────────────────────────────────────
       fetch("data.json")
         .then((r) => r.json())
         .then((d) => {
-          // Add treemap value — use 1 per occupation (no employment count from AMS)
-          // Weight slightly by salary_mid if available so higher-paid jobs are more visible
-          data = d.map((occ) => ({
+          allData = d.map((occ) => ({
             ...occ,
-            value: occ.salary_mid ? Math.max(1, occ.salary_mid / 1000) : 1,
+            // Tile size: headcount > salary proxy > 1
+            value: occ.headcount || (occ.salary_mid ? occ.salary_mid / 500 : 1),
           }));
+          filteredData = [...allData];
+          buildFilters();
           computeStats();
           drawGradientLegend();
           resize();
         });
-
-      window.addEventListener("resize", resize);
     </script>
   </body>
 </html>

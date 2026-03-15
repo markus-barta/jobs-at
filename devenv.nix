@@ -38,16 +38,18 @@
     '';
 
     # Individual steps
-    scrape.exec    = "uv run python scrape.py \"$@\"";
-    process.exec   = "uv run python process.py \"$@\"";
-    make-csv.exec  = "uv run python make_csv.py \"$@\"";
-    score.exec     = "uv run python score.py \"$@\"";
-    build.exec     = "uv run python build_site_data.py";
+    scrape.exec         = "uv run python scrape.py \"$@\"";
+    process.exec        = "uv run python process.py \"$@\"";
+    make-csv.exec       = "uv run python make_csv.py \"$@\"";
+    score.exec          = "uv run python score.py \"$@\"";
+    score-headcount.exec= "uv run python score_headcount.py \"$@\"";
+    normalize.exec      = "uv run python score_headcount.py --normalize";
+    build.exec          = "uv run python build_site_data.py";
 
     # Deploy: commit data.json + push + pull on csb1
     deploy.exec = ''
       set -e
-      git add site/data.json occupations.csv scores.json occupations.json
+      git add site/data.json occupations.csv scores.json headcounts.json occupations.json
       git commit -m "update Austrian job data $(date +%Y-%m-%d)"
       git push
       echo "Waiting for GitHub Actions to build image..."
@@ -68,8 +70,10 @@
     echo "  scrape     — fetch AMS Berufslexikon pages"
     echo "  process    — convert HTML → Markdown"
     echo "  make-csv   — extract salary/outlook stats"
-    echo "  score      — AI exposure scoring via OpenRouter"
-    echo "  build      — build site/data.json"
+    echo "  score            — AI exposure scoring via OpenRouter"
+    echo "  score-headcount  — ISCO code + headcount estimation via LLM"
+    echo "  normalize        — re-run STATcube normalization on headcounts.json"
+    echo "  build            — build site/data.json"
     echo "  deploy     — commit + push + deploy to csb1"
     echo "  serve      — serve site locally at :8000"
     echo ""
