@@ -162,42 +162,42 @@ uv run python build_site_data.py
 cd site && python -m http.server 8000
 ```
 
-## Docker deployment (csb1 / zukunftschance.ai.barta.cm)
+## Deployment (csb1 / zukunftschance.ai.barta.cm)
+
+### How it works
+
+1. Run the data pipeline on your Mac (steps 1–6 above) to produce `site/data.json`
+2. Commit and push `site/data.json` to git
+3. GitHub Actions builds the Docker image and pushes it to `ghcr.io/markus-barta/jobs-at:latest`
+4. Pull and restart the container on csb1
+
+### Cloudflare DNS (one-time setup)
+
+In the Cloudflare dashboard for `barta.cm`:
+
+- Add CNAME: `zukunftschance.ai` → `cs1.barta.cm`
+- Proxy status: **DNS only** (gray cloud)
+
+Note: `ai.barta.cm` is a new subdomain space — you may need to add a wildcard `*.ai` CNAME first, or just the specific `zukunftschance.ai` record.
+
+### csb1 docker-compose (already done)
+
+The `jobs-at` service is already added to `~/docker/docker-compose.yml` on csb1.
+
+### Deploy / update
 
 ```bash
-# Build and run locally (hsb1) first
+# Pull latest image and restart (run on csb1 or via SSH)
+ssh mba@cs1.barta.cm -p 2222 "cd ~/docker && docker compose pull jobs-at && docker compose up -d jobs-at"
+
+# Or after pushing a new site/data.json — rebuild image via GitHub Actions, then:
+ssh mba@cs1.barta.cm -p 2222 "cd ~/docker && docker compose pull jobs-at && docker compose up -d jobs-at"
+```
+
+### Local test (before deploying)
+
+```bash
+# In the jobs-at repo directory:
 docker compose up -d --build
-
-# Site available at http://localhost:8081
-# Traefik/nginx reverse proxy handles TLS for the public domain
+# Site available at http://localhost:8082
 ```
-
-The container serves the static `site/` folder via nginx. `site/data.json` is
-volume-mounted so data can be updated without rebuilding the image.
-uv sync
-uv run playwright install chromium
-
-```
-
-Requires an OpenRouter API key in `.env`:
-
-```
-
-OPENROUTER_API_KEY=your_key_here
-
-````
-
-## Usage
-
-```bash
-# TODO: Pipeline commands will be updated as scripts are adapted
-
-# Score AI exposure (uses OpenRouter API)
-uv run python score.py
-
-# Build website data
-uv run python build_site_data.py
-
-# Serve the site locally
-cd site && python -m http.server 8000
-````

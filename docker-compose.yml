@@ -1,15 +1,14 @@
+# Standalone compose — for LOCAL TESTING ONLY (e.g. on hsb1 or your Mac).
+# On csb1, this service is added to ~/docker/docker-compose.yml instead.
+# See deployment instructions in README.md.
+name: jobs-at-local
+
 services:
   jobs-at:
     build: .
     container_name: jobs-at
     restart: unless-stopped
     ports:
-      - "127.0.0.1:8081:80" # expose only on loopback; reverse proxy handles TLS
+      - "127.0.0.1:8082:80" # test locally at http://localhost:8082
     volumes:
-      # Mount site/ so you can update data.json without rebuilding the image
       - ./site:/usr/share/nginx/html:ro
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.jobs-at.rule=Host(`zukunftschance.ai.barta.cm`)"
-      - "traefik.http.routers.jobs-at.entrypoints=websecure"
-      - "traefik.http.routers.jobs-at.tls=true"
