@@ -21,7 +21,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-DEFAULT_MODEL = "google/gemini-2.5-flash"
+DEFAULT_MODEL = "google/gemini-3-flash-preview"
 OUTPUT_FILE = "scores.json"
 API_URL = "https://openrouter.ai/api/v1/chat/completions"
 
