@@ -1,7 +1,13 @@
 """
-Build a CSV summary of all occupations from the scraped HTML files.
+Build a CSV summary of all AMS occupations from scraped HTML files.
 
-Reads from html/<slug>.html, writes to occupations.csv.
+Extracts:
+  - title, category (Berufsbereich), ausbildung (education type)
+  - salary_min_eur, salary_max_eur (KV Brutto entry salary range)
+  - outlook_text (Berufsaussichten qualitative description)
+  - outlook_trend (positive/neutral/negative — heuristic from outlook text)
+  - employment_sectors (from Beschäftigungsmöglichkeiten)
+  - ams_id, slug, url
 
 Usage:
     uv run python make_csv.py
@@ -14,155 +20,189 @@ import re
 from bs4 import BeautifulSoup
 
 
-def clean(text):
-    return re.sub(r'\s+', ' ', text).strip()
+def clean(text: str) -> str:
+    return re.sub(r"\s+", " ", text).strip()
 
 
-def parse_pay(value):
-    """Parse '62,350 per year $29.98 per hour' or '$23.33 per hour' into (annual, hourly)."""
-    annual = ""
-    hourly = ""
-    # Find all dollar amounts
-    amounts = re.findall(r'\$([\d,]+(?:\.\d+)?)', value)
-    if "per year" in value and "per hour" in value and len(amounts) >= 2:
-        annual = amounts[0].replace(",", "")
-        hourly = amounts[1].replace(",", "")
-    elif "per year" in value and amounts:
-        annual = amounts[0].replace(",", "")
-    elif "per hour" in value and amounts:
-        hourly = amounts[0].replace(",", "")
-    return annual, hourly
+def parse_salary(soup: BeautifulSoup) -> tuple[str, str]:
+    """
+    Extract KV entry salary range.
+    Typical formats:
+      "€ 2.460,- bis € 2.800,-"
+      "€ 1.800,-"
+      "€ 2.500,- bis € 3.200,- *"
+    Returns (min_eur, max_eur) as plain integers (e.g. "2460", "2800").
+    """
+    # Search all text on the page
+    full_text = soup.get_text(" ")
+
+    # Find the salary block — appears after "Gehalt:" or "Einstiegsgehalt"
+    m = re.search(
+        r"(?:Gehalt:|Einstiegsgehalt lt\. KV:)\s*(€\s*[\d.,]+(?:\s*bis\s*€\s*[\d.,]+)?)",
+        full_text,
+    )
+    if not m:
+        # Looser search for any EUR range
+        m = re.search(r"€\s*([\d.,]+)[,-]+\s*bis\s*€\s*([\d.,]+)[,-]+", full_text)
+        if m:
+            return _eur_int(m.group(1)), _eur_int(m.group(2))
+        return "", ""
+
+    salary_str = m.group(1)
+    # Split on "bis"
+    parts = re.split(r"\s*bis\s*", salary_str)
+    min_val = _eur_int(re.sub(r"[^\d.,]", "", parts[0]))
+    max_val = _eur_int(re.sub(r"[^\d.,]", "", parts[1])) if len(parts) > 1 else min_val
+    return min_val, max_val
 
 
-def parse_outlook(value):
-    """Parse '9% (Much faster than average)' into (pct, description)."""
-    m = re.match(r'(-?\d+)%\s*\((.+)\)', value)
-    if m:
-        return m.group(1), m.group(2)
-    m = re.match(r'(-?\d+)%', value)
-    if m:
-        return m.group(1), ""
-    return "", value
+def _eur_int(s: str) -> str:
+    """Convert '2.460,-' or '2460' to '2460'."""
+    s = re.sub(r"[.,\s\-]+$", "", s)   # strip trailing punctuation
+    s = re.sub(r"\.", "", s)            # remove thousand separator
+    s = re.sub(r",\d+$", "", s)        # remove decimal part
+    return s.strip() if re.match(r"^\d+$", s.strip()) else ""
 
 
-def parse_number(value):
-    """Strip commas and return a clean number string."""
-    cleaned = value.replace(",", "").strip()
-    # Handle negative numbers
-    if re.match(r'^-?\d+$', cleaned):
-        return cleaned
-    return value.strip()
+def parse_outlook(soup: BeautifulSoup) -> tuple[str, str]:
+    """
+    Extract Berufsaussichten text and derive a trend label.
+    Returns (outlook_text, trend) where trend in {positive, neutral, negative}.
+    """
+    anchor = soup.find("a", {"name": "aussichten"}) or soup.find(id="aussichten")
+    if not anchor:
+        return "", "neutral"
+
+    paragraphs = []
+    for sib in anchor.find_next_siblings():
+        if sib.name in ("h2", "h3"):
+            break
+        if sib.name == "a" and sib.get("name") and sib.get("name") != "aussichten":
+            break
+        if sib.name == "p":
+            t = clean(sib.get_text())
+            if t:
+                paragraphs.append(t)
+
+    outlook_text = " ".join(paragraphs[:2])  # first two paragraphs
+
+    # Heuristic: detect trend keywords
+    positive_kw = [
+        "steigt", "wächst", "zunimmt", "steigende", "wachsend", "gute",
+        "sehr gute", "stark gefragt", "gefrag", "positiv", "zunehmen",
+        "mehr", "ansteig", "boomen", "boom",
+    ]
+    negative_kw = [
+        "sinkt", "rückgang", "abnimmt", "abnehmend", "schlechte",
+        "schwierig", "rückläufig", "gesättig", "übersättig", "wenig",
+    ]
+    text_lower = outlook_text.lower()
+    pos_score = sum(1 for kw in positive_kw if kw in text_lower)
+    neg_score = sum(1 for kw in negative_kw if kw in text_lower)
+
+    if pos_score > neg_score:
+        trend = "positive"
+    elif neg_score > pos_score:
+        trend = "negative"
+    else:
+        trend = "neutral"
+
+    return outlook_text[:500], trend
 
 
-def extract_occupation(html_path, occ_meta):
-    """Extract one row of data from an HTML file."""
-    with open(html_path) as f:
+def parse_employment_sectors(soup: BeautifulSoup) -> str:
+    """Extract a short list of employment sectors from Beschäftigungsmöglichkeiten."""
+    anchor = soup.find("a", {"name": "beschaeftigung"}) or soup.find(id="beschaeftigung")
+    if not anchor:
+        return ""
+
+    items = []
+    for sib in anchor.find_next_siblings():
+        if sib.name in ("h2", "h3"):
+            break
+        if sib.name == "a" and sib.get("name") and sib.get("name") != "beschaeftigung":
+            break
+        if sib.name in ("ul", "ol"):
+            for li in sib.find_all("li"):
+                t = clean(li.get_text())
+                if t:
+                    items.append(t)
+            break  # only first list
+
+    return "; ".join(items[:8])
+
+
+def extract_occupation(html_path: str, occ_meta: dict) -> dict:
+    with open(html_path, encoding="utf-8") as f:
         soup = BeautifulSoup(f.read(), "html.parser")
 
-    row = {
+    salary_min, salary_max = parse_salary(soup)
+    outlook_text, outlook_trend = parse_outlook(soup)
+    sectors = parse_employment_sectors(soup)
+
+    return {
         "title": occ_meta["title"],
         "category": occ_meta["category"],
+        "ausbildung": occ_meta["ausbildung"],
+        "ams_id": occ_meta["id"],
         "slug": occ_meta["slug"],
         "url": occ_meta["url"],
-        "soc_code": "",
-        "median_pay_annual": "",
-        "median_pay_hourly": "",
-        "entry_education": "",
-        "work_experience": "",
-        "training": "",
-        "num_jobs_2024": "",
-        "outlook_pct": "",
-        "outlook_desc": "",
-        "employment_change": "",
-        "projected_employment_2034": "",
+        "salary_min_eur": salary_min,
+        "salary_max_eur": salary_max,
+        "outlook_text": outlook_text,
+        "outlook_trend": outlook_trend,
+        "employment_sectors": sectors,
     }
-
-    # Quick Facts table
-    qf_table = soup.find("table", id="quickfacts")
-    if qf_table:
-        tbody = qf_table.find("tbody")
-        if tbody:
-            for tr in tbody.find_all("tr"):
-                th = tr.find("th")
-                td = tr.find("td")
-                if not th or not td:
-                    continue
-                field = clean(th.get_text()).lower()
-                value = clean(td.get_text())
-
-                if "median pay" in field:
-                    row["median_pay_annual"], row["median_pay_hourly"] = parse_pay(value)
-                elif "entry-level education" in field:
-                    row["entry_education"] = value
-                elif "work experience" in field:
-                    row["work_experience"] = value
-                elif "on-the-job training" in field:
-                    row["training"] = value
-                elif "number of jobs" in field:
-                    row["num_jobs_2024"] = parse_number(value)
-                elif "job outlook" in field:
-                    row["outlook_pct"], row["outlook_desc"] = parse_outlook(value)
-                elif "employment change" in field:
-                    row["employment_change"] = parse_number(value)
-
-    # Projections table (for SOC code and projected employment)
-    outlook_table = soup.find("table", id="outlook-table")
-    if outlook_table:
-        tbody = outlook_table.find("tbody")
-        if tbody:
-            tr = tbody.find("tr")
-            if tr:
-                cells = [clean(c.get_text()) for c in tr.find_all(["td", "th"])]
-                # cells: [Title, SOC, Emp2024, Emp2034, %change, numchange, ...]
-                if len(cells) >= 4:
-                    soc = cells[1]
-                    if soc != "—":
-                        row["soc_code"] = soc
-                    row["projected_employment_2034"] = parse_number(cells[3])
-
-    # Impute missing pay: annual <-> hourly using 2080 hours/year
-    if row["median_pay_annual"] and not row["median_pay_hourly"]:
-        row["median_pay_hourly"] = f"{float(row['median_pay_annual']) / 2080:.2f}"
-    elif row["median_pay_hourly"] and not row["median_pay_annual"]:
-        row["median_pay_annual"] = str(round(float(row["median_pay_hourly"]) * 2080))
-
-    return row
 
 
 def main():
-    with open("occupations.json") as f:
+    with open("occupations.json", encoding="utf-8") as f:
         occupations = json.load(f)
 
     fieldnames = [
-        "title", "category", "slug", "soc_code",
-        "median_pay_annual", "median_pay_hourly",
-        "entry_education", "work_experience", "training",
-        "num_jobs_2024", "projected_employment_2034",
-        "outlook_pct", "outlook_desc", "employment_change",
+        "title", "category", "ausbildung", "ams_id", "slug",
+        "salary_min_eur", "salary_max_eur",
+        "outlook_text", "outlook_trend",
+        "employment_sectors",
         "url",
     ]
 
     rows = []
     missing = 0
+    errors = 0
+
     for occ in occupations:
         html_path = f"html/{occ['slug']}.html"
         if not os.path.exists(html_path):
             missing += 1
             continue
-        row = extract_occupation(html_path, occ)
-        rows.append(row)
+        try:
+            row = extract_occupation(html_path, occ)
+            rows.append(row)
+        except Exception as e:
+            print(f"  ERROR {occ['slug']}: {e}")
+            errors += 1
 
-    with open("occupations.csv", "w", newline="") as f:
+    with open("occupations.csv", "w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerows(rows)
 
-    print(f"Wrote {len(rows)} rows to occupations.csv (missing HTML: {missing})")
+    print(f"Wrote {len(rows)} rows to occupations.csv")
+    print(f"Missing HTML: {missing}, Errors: {errors}")
 
     # Quick sanity check
-    print(f"\nSample rows:")
-    for r in rows[:3]:
-        print(f"  {r['title']}: ${r['median_pay_annual']}/yr, {r['num_jobs_2024']} jobs, {r['outlook_pct']}% outlook")
+    sample = [r for r in rows if r["salary_min_eur"]][:5]
+    print(f"\nSample rows (with salary):")
+    for r in sample:
+        print(f"  {r['title']}: €{r['salary_min_eur']}-{r['salary_max_eur']}/mo, outlook: {r['outlook_trend']}")
+
+    # Trend breakdown
+    trends: dict[str, int] = {}
+    for r in rows:
+        t = r["outlook_trend"]
+        trends[t] = trends.get(t, 0) + 1
+    print(f"\nOutlook trend distribution: {trends}")
 
 
 if __name__ == "__main__":

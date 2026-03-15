@@ -1,8 +1,8 @@
 """
-Process scraped HTML files into Markdown.
+Process scraped AMS HTML files into Markdown.
 
 Reads from html/<slug>.html, writes to pages/<slug>.md.
-Reuses parse_detail.parse_ooh_page() which is already tested.
+Uses parse_detail.parse_ams_page().
 
 Usage:
     uv run python process.py              # process all HTML files
@@ -12,23 +12,20 @@ Usage:
 import argparse
 import json
 import os
-from parse_detail import parse_ooh_page
+from parse_detail import parse_ams_page
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Convert HTML to Markdown")
+    parser = argparse.ArgumentParser(description="Convert AMS HTML to Markdown")
     parser.add_argument("--force", action="store_true", help="Re-process even if .md exists")
     args = parser.parse_args()
 
     os.makedirs("pages", exist_ok=True)
 
-    # Load master list for ordering/metadata
-    with open("occupations.json") as f:
+    with open("occupations.json", encoding="utf-8") as f:
         occupations = json.load(f)
 
-    processed = 0
-    skipped = 0
-    missing = 0
+    processed = skipped = missing = errors = 0
 
     for occ in occupations:
         slug = occ["slug"]
@@ -43,14 +40,18 @@ def main():
             skipped += 1
             continue
 
-        md = parse_ooh_page(html_path)
-        with open(md_path, "w") as f:
-            f.write(md)
-        processed += 1
+        try:
+            md = parse_ams_page(html_path)
+            with open(md_path, "w", encoding="utf-8") as f:
+                f.write(md)
+            processed += 1
+        except Exception as e:
+            print(f"  ERROR {slug}: {e}")
+            errors += 1
 
     total_html = len([f for f in os.listdir("html") if f.endswith(".html")])
     total_md = len([f for f in os.listdir("pages") if f.endswith(".md")])
-    print(f"Processed: {processed}, Skipped (cached): {skipped}, Missing HTML: {missing}")
+    print(f"Processed: {processed}, Skipped (cached): {skipped}, Missing HTML: {missing}, Errors: {errors}")
     print(f"Total: {total_html} HTML files, {total_md} Markdown files")
 
 

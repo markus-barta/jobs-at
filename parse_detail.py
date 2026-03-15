@@ -1,194 +1,257 @@
-"""Parse a BLS OOH detail page into a clean Markdown document."""
+"""
+Parse an AMS Berufslexikon detail page into clean Markdown.
 
-import sys
+AMS page structure (berufslexikon.at/berufe/{id}-{slug}/):
+  - div.beruf-detail: main content container
+    - h1 (second one on page): occupation title
+    - "Berufsbereiche:" text: category
+    - "Ausbildungsform:" text: education type
+    - "Einstiegsgehalt lt. KV: Gehalt: € X,- bis € Y,-": salary
+    - h2 "Tätigkeitsmerkmale": job duties
+    - a[name=anforderungen] / h2 "Anforderungen": requirements
+    - a[name=beschaeftigung]: employment sectors
+    - a[name=aussichten]: job outlook
+    - a[name=ausbildung]: education details
+
+Usage (standalone):
+    uv run python parse_detail.py html/3049-3D-DesignerIn.html
+"""
+
+import os
 import re
+import sys
 from bs4 import BeautifulSoup
 
-def clean(text):
-    """Clean up whitespace from extracted text."""
-    text = re.sub(r'\s+', ' ', text).strip()
-    return text
 
-def parse_ooh_page(html_path):
-    with open(html_path, "r") as f:
+def clean(text):
+    """Normalize whitespace."""
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def get_beruf_detail(soup):
+    """
+    Return the container holding the main occupation content.
+    On AMS pages, the beruf-detail div only holds the header (title/salary/category).
+    The actual content sections (h2s + content) are in the broader page body,
+    so we return the full body and rely on section-specific extractors.
+    """
+    return soup.body
+
+
+def parse_salary(detail_div):
+    """Extract the KV entry salary from the detail block."""
+    text = detail_div.get_text(" ") if detail_div else ""
+    m = re.search(
+        r"Gehalt:\s*(€\s*[\d.,]+[,\-]+(?:\s*bis\s*€\s*[\d.,]+[,\-]+)?)",
+        text,
+    )
+    if m:
+        return m.group(1).strip().rstrip("*").strip()
+    return ""
+
+
+def parse_meta(detail_div):
+    """Extract category and education type from the header block."""
+    category = ""
+    ausbildung = ""
+    if not detail_div:
+        return category, ausbildung
+    # Use collapsed whitespace for reliable regex matching
+    text = re.sub(r"\s+", " ", detail_div.get_text(" "))
+    m = re.search(r"Berufsbereiche?:\s*(.+?)(?:Ausbildungsform|Einstiegsgehalt|Beruf merken)", text)
+    if m:
+        category = clean(m.group(1))
+    m2 = re.search(r"Ausbildungsform:\s*(.+?)(?:Einstiegsgehalt|Beruf merken|\*)", text)
+    if m2:
+        ausbildung = clean(m2.group(1))
+    return category, ausbildung
+
+
+def extract_section_after_h2(detail_div, heading_text):
+    """Extract content after an h2 with matching text (searches full soup if needed)."""
+    # Search in the given div, or fall back to searching the full page
+    search_root = detail_div if detail_div else None
+    h2_found = None
+    if search_root:
+        for h2 in search_root.find_all("h2"):
+            if heading_text.lower() in h2.get_text().lower():
+                h2_found = h2
+                break
+    if not h2_found:
+        return ""
+
+    parts = []
+    for sib in h2_found.find_next_siblings():
+        if sib.name == "h2":
+            break
+        if sib.name in ("p", "div"):
+            t = clean(sib.get_text())
+            if t and not t.startswith("*") and "Hinweis:" not in t and len(t) > 5:
+                parts.append(t)
+        elif sib.name in ("ul", "ol"):
+            for li in sib.find_all("li"):
+                t = clean(li.get_text())
+                if t:
+                    parts.append(f"- {t}")
+        elif sib.name == "h3":
+            t = clean(sib.get_text())
+            if t:
+                parts.append(f"\n### {t}")
+    return "\n".join(parts).strip()
+
+
+def extract_section_after_anchor(detail_div, anchor_name):
+    """Extract content after a named anchor or matching heading."""
+    anchor = detail_div.find("a", {"name": anchor_name})
+    if not anchor:
+        text_map = {
+            "anforderungen": "Anforderungen",
+            "beschaeftigung": "Beschäftigungsmöglichkeiten",
+            "aussichten": "Berufsaussichten",
+            "ausbildung": "Ausbildung",
+        }
+        heading = text_map.get(anchor_name, "")
+        if heading:
+            return extract_section_after_h2(detail_div, heading)
+        return ""
+
+    parts = []
+    for sib in anchor.find_next_siblings():
+        tag = getattr(sib, "name", None)
+        if tag is None:
+            continue
+        if tag == "a" and sib.get("name") and sib.get("name") != anchor_name:
+            break
+        if tag == "div" and "similarberufe" in " ".join(sib.get("class", [])):
+            break
+        if tag == "p":
+            t = clean(sib.get_text())
+            if t and not t.startswith("*") and "Hinweis:" not in t and "Gehaltsangaben" not in t:
+                parts.append(t)
+        elif tag in ("ul", "ol"):
+            for li in sib.find_all("li", recursive=False):
+                t = clean(li.get_text())
+                if t:
+                    parts.append(f"- {t}")
+        elif tag == "h3":
+            t = clean(sib.get_text())
+            if t:
+                parts.append(f"\n### {t}")
+
+    return "\n".join(parts).strip()
+
+
+def parse_ams_page(html_path):
+    """Parse an AMS Berufslexikon HTML file into Markdown."""
+    with open(html_path, encoding="utf-8") as f:
         soup = BeautifulSoup(f.read(), "html.parser")
 
     md = []
 
-    # --- Title ---
-    h1 = soup.find("h1")
-    title = clean(h1.get_text()) if h1 else "Unknown Occupation"
+    # The small beruf-detail div holds header info (title, salary, category)
+    header_div = soup.find("div", class_="beruf-detail")
+    # The full body is used for content sections
+    beruf_div = get_beruf_detail(soup)
+
+    # --- Title: find h1 inside beruf-detail header, or second h1 on page ---
+    title = ""
+    if header_div:
+        h1 = header_div.find("h1")
+        if h1:
+            title = clean(h1.get_text())
+    if not title:
+        all_h1 = soup.find_all("h1")
+        if len(all_h1) > 1:
+            title = clean(all_h1[1].get_text())
+        elif all_h1:
+            title = clean(all_h1[0].get_text())
+    if not title:
+        title = os.path.basename(html_path).replace(".html", "")
+
     md.append(f"# {title}")
     md.append("")
 
     # --- Source URL ---
     canonical = soup.find("link", rel="canonical")
-    if canonical:
-        md.append(f"**Source:** {canonical['href']}")
+    if canonical and canonical.get("href"):
+        url = canonical["href"]
+        if "/berufe/" in url:
+            md.append(f"**Quelle:** {url}")
+            md.append("")
+
+    # --- Category + Education (from header div) ---
+    category, ausbildung = parse_meta(header_div)
+    if category or ausbildung:
+        md.append("## Kurzübersicht")
+        md.append("")
+        if category:
+            md.append(f"- **Berufsbereich:** {category}")
+        if ausbildung:
+            md.append(f"- **Ausbildungsform:** {ausbildung}")
         md.append("")
 
-    # --- Quick Facts ---
-    qf_table = soup.find("table", id="quickfacts")
-    if qf_table:
-        md.append("## Quick Facts")
-        md.append("")
-        md.append("| Field | Value |")
-        md.append("|-------|-------|")
-        for row in qf_table.find("tbody").find_all("tr"):
-            th = row.find("th")
-            td = row.find("td")
-            if th and td:
-                field = clean(th.get_text())
-                value = clean(td.get_text())
-                md.append(f"| {field} | {value} |")
+    # --- Salary (from header div) ---
+    salary = parse_salary(header_div)
+    if salary:
+        md.append(f"**Einstiegsgehalt (KV Brutto):** {salary}")
         md.append("")
 
-    # --- Tab sections ---
-    panes = soup.find("div", id="panes")
-    if not panes:
-        return "\n".join(md)
+    # --- Tätigkeitsmerkmale ---
+    if beruf_div:
+        duties = extract_section_after_h2(beruf_div, "Tätigkeitsmerkmale")
+        if duties:
+            md.append("## Tätigkeitsmerkmale")
+            md.append("")
+            md.append(duties)
+            md.append("")
 
-    tab_ids = ["tab-1", "tab-2", "tab-3", "tab-4", "tab-5", "tab-6", "tab-7", "tab-8", "tab-9"]
-    # Skip tab-1 (Summary, already covered by quick facts) and tab-7 (State & Area Data, just links)
+    # --- Anforderungen ---
+    if beruf_div:
+        req = extract_section_after_anchor(beruf_div, "anforderungen")
+        if req:
+            md.append("## Anforderungen")
+            md.append("")
+            md.append(req)
+            md.append("")
 
-    for tab_id in tab_ids:
-        tab_div = panes.find("div", id=tab_id)
-        if not tab_div:
-            continue
+    # --- Beschäftigungsmöglichkeiten ---
+    if beruf_div:
+        emp = extract_section_after_anchor(beruf_div, "beschaeftigung")
+        if emp:
+            md.append("## Beschäftigungsmöglichkeiten")
+            md.append("")
+            md.append(emp)
+            md.append("")
 
-        article = tab_div.find("article")
-        if not article:
-            # tab-8 (Similar Occupations) doesn't have an article wrapper
-            article = tab_div
+    # --- Berufsaussichten ---
+    if beruf_div:
+        outlook = extract_section_after_anchor(beruf_div, "aussichten")
+        if outlook:
+            md.append("## Berufsaussichten")
+            md.append("")
+            md.append(outlook)
+            md.append("")
 
-        h2 = article.find("h2")
-        if not h2:
-            continue
-        section_title = clean(h2.find("span").get_text()) if h2.find("span") else clean(h2.get_text())
-
-        # Skip tabs we don't need
-        if tab_id in ("tab-1",   # Summary (redundant with Quick Facts)
-                       "tab-7",   # State & Area Data (just links)
-                       "tab-8",   # Similar Occupations
-                       "tab-9"):  # Contacts for More Information
-            continue
-
-        md.append(f"## {section_title}")
-        md.append("")
-
-        # --- Generic tab: extract paragraphs, headers, lists, tables ---
-        # Process the pay chart if present
-        chart_div = article.find("div", class_="ooh-chart")
-        if chart_div:
-            # Extract the bar chart data
-            chart_title_h3 = chart_div.find("h3")
-            chart_subtitle = chart_div.find("p")
-            dts = chart_div.find("dl")
-            if dts:
-                items = []
-                dt_list = dts.find_all("dt")
-                dd_list = dts.find_all("dd")
-                for dt, dd in zip(dt_list, dd_list):
-                    label = clean(dt.get_text())
-                    # find the value span
-                    val_spans = dd.find_all("span")
-                    for s in val_spans:
-                        val_text = clean(s.get_text())
-                        if val_text and (val_text.startswith("$") or val_text.endswith("%")):
-                            items.append((label, val_text))
-                            break
-                if items:
-                    subtitle = clean(chart_subtitle.get_text()) if chart_subtitle else ""
-                    if subtitle:
-                        md.append(f"*{subtitle}*")
-                        md.append("")
-                    for label, val in items:
-                        md.append(f"- **{label}**: {val}")
-                    md.append("")
-
-        # Now process remaining content (skip chart divs)
-        for elem in article.children:
-            if hasattr(elem, 'name'):
-                if elem.name == 'h2':
-                    continue  # already printed
-                if elem.name == 'div' and elem.get('class') and 'ooh-chart' in elem.get('class', []):
-                    continue  # already handled
-                if elem.name == 'div' and elem.get('class') and 'ooh_right_img' in elem.get('class', []):
-                    continue  # skip images
-                if elem.name == 'h3':
-                    md.append(f"### {clean(elem.get_text())}")
-                    md.append("")
-                elif elem.name == 'p':
-                    text = clean(elem.get_text())
-                    if text:
-                        md.append(text)
-                        md.append("")
-                elif elem.name == 'ul':
-                    for li in elem.find_all("li"):
-                        md.append(f"- {clean(li.get_text())}")
-                    md.append("")
-                elif elem.name == 'table':
-                    # Skip the outlook-table (handled separately below)
-                    if elem.get("id") == "outlook-table":
-                        continue
-                    # Parse generic table (employer breakdown, pay by industry, etc.)
-                    rows = elem.find_all("tr")
-                    if rows:
-                        table_data = []
-                        for row in rows:
-                            cells = row.find_all(["td", "th"])
-                            row_data = [clean(c.get_text()) for c in cells]
-                            if row_data and any(row_data):
-                                table_data.append(row_data)
-                        if table_data:
-                            max_cols = max(len(r) for r in table_data)
-                            for r in table_data:
-                                while len(r) < max_cols:
-                                    r.append("")
-                            # Render as simple rows (no header row for these tables)
-                            md.append("| " + " | ".join(["---"] * max_cols) + " |")
-                            for row_data in table_data:
-                                md.append("| " + " | ".join(row_data) + " |")
-                            md.append("")
-
-        # Employment projections table (in Job Outlook tab)
-        if tab_id == "tab-6":
-            outlook_table = article.find("table", id="outlook-table")
-            if outlook_table:
-                md.append("### Employment Projections")
-                md.append("")
-                tbody = outlook_table.find("tbody")
-                if tbody:
-                    for row in tbody.find_all("tr"):
-                        cells = row.find_all(["td", "th"])
-                        values = [clean(c.get_text()) for c in cells]
-                        if values:
-                            # Format: Title, SOC, Employment 2024, Projected 2034, % change, numeric change
-                            labels = ["Occupational Title", "SOC Code", "Employment 2024",
-                                      "Projected Employment 2034", "Change % 2024-34",
-                                      "Change Numeric 2024-34"]
-                            for label, val in zip(labels, values):
-                                if val and val != "Get data":
-                                    md.append(f"- **{label}:** {val}")
-                            md.append("")
-
-    # --- Last Modified ---
-    update_p = soup.find("p", class_="update")
-    if update_p:
-        md.append("---")
-        md.append(f"*{clean(update_p.get_text())}*")
-        md.append("")
+    # --- Ausbildung (truncated) ---
+    if beruf_div:
+        edu = extract_section_after_anchor(beruf_div, "ausbildung")
+        if edu:
+            md.append("## Ausbildung")
+            md.append("")
+            lines = edu.split("\n")
+            trimmed = [l for l in lines if not re.match(r"^\d{4}\s", l)]
+            md.append("\n".join(trimmed[:30]))
+            md.append("")
 
     return "\n".join(md)
 
 
 if __name__ == "__main__":
-    html_path = sys.argv[1] if len(sys.argv) > 1 else "electrician.html"
-    result = parse_ooh_page(html_path)
-
-    # Write output
-    out_path = html_path.replace(".html", ".md")
-    with open(out_path, "w") as f:
+    html_path = sys.argv[1] if len(sys.argv) > 1 else "html/3049-3D-DesignerIn.html"
+    result = parse_ams_page(html_path)
+    out_path = html_path.replace("html/", "pages/").replace(".html", ".md")
+    os.makedirs("pages", exist_ok=True)
+    with open(out_path, "w", encoding="utf-8") as f:
         f.write(result)
     print(f"Written to {out_path}")
     print()

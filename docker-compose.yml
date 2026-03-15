@@ -1,0 +1,15 @@
+services:
+  jobs-at:
+    build: .
+    container_name: jobs-at
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8081:80" # expose only on loopback; reverse proxy handles TLS
+    volumes:
+      # Mount site/ so you can update data.json without rebuilding the image
+      - ./site:/usr/share/nginx/html:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.jobs-at.rule=Host(`zukunftschance.ai.barta.cm`)"
+      - "traefik.http.routers.jobs-at.entrypoints=websecure"
+      - "traefik.http.routers.jobs-at.tls=true"
