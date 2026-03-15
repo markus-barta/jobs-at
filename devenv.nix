@@ -55,15 +55,28 @@
       git commit -m "update Austrian job data $(date +%Y-%m-%d)"
       git push
       echo "Waiting for GitHub Actions to build image..."
-      gh run watch --exit-status
+      # Wait up to 5s for a run to appear, then watch it; if already done, check latest
+      sleep 5
+      RUN_ID=$(gh run list --repo markus-barta/jobs-at --workflow docker.yml --limit 1 --json databaseId,status --jq '.[0] | select(.status != "completed") | .databaseId' 2>/dev/null || true)
+      if [ -n "$RUN_ID" ]; then
+        gh run watch "$RUN_ID" --exit-status
+      else
+        # Run already completed — verify it succeeded
+        CONCLUSION=$(gh run list --repo markus-barta/jobs-at --workflow docker.yml --limit 1 --json conclusion --jq '.[0].conclusion' 2>/dev/null || echo "unknown")
+        if [ "$CONCLUSION" = "success" ]; then
+          echo "Image already built successfully."
+        else
+          echo "Last GHA run conclusion: $CONCLUSION — check https://github.com/markus-barta/jobs-at/actions"
+          exit 1
+        fi
+      fi
       if [ -n "$DEPLOY_SSH" ]; then
         echo "Deploying to server..."
         ssh $DEPLOY_SSH "cd ''${DEPLOY_COMPOSE_DIR:-~/docker} && docker compose pull jobs-at && docker compose up -d jobs-at"
         echo "Done."
       else
         echo "DEPLOY_SSH not set in .env — skipping remote deploy."
-        echo "Pull the image manually on your server:"
-        echo "  docker compose pull jobs-at && docker compose up -d jobs-at"
+        echo "Pull manually: docker compose pull jobs-at && docker compose up -d jobs-at"
       fi
     '';
 
